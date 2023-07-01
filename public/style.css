@@ -1,6 +1,12 @@
+title{
+  display: none;
+}
 *{
     border : 0 px;
     margin:0px;
+    display: flex;
+    flex-direction: column;
+    
 }
 body{
     display: flex;
@@ -10,6 +16,39 @@ body{
 }
 
 
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.form {
+  text-align: center;
+  border:1px solid black;
+  padding:27px;
+  
+}
+
+.form h1 {
+  margin-bottom: 10px;
+}
+
+.form form {
+  display: flex;
+  flex-direction : row;
+  align-items: center;
+  justify-content:center
+}
+.form input {
+  margin-bottom :15px;
+  
+}
 
 /* CSS */
 .button-89 {
@@ -79,3 +118,10 @@ body{
     padding: 0 2.6rem;
   }
 }
+
+
+
+
+
+
+

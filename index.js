@@ -5,24 +5,48 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 
-// mongoose.connect("")
+
+mongoose.connect("mongodb://127.0.0.1:27017",{
+    dbName:"user"
+}).then(()=>{console.log("db connected")}).catch(e=>console.log(e));
+
+const userSchema = new mongoose.Schema({
+    name:String,
+    email:String
+})
+
+const User = mongoose.model("User",userSchema);
+
 app.set("view engine","ejs");
 app.use(cookieParser());
 app.use(express.static(path.join(path.resolve(),"/public")))
 
-app.get("/",(req,res)=>{
-    // console.log(req.cookies);
-
-    const { token } = req.cookies;
-    console.log(token);
+const isAuthenticated = (req,res,next) =>{
+    const { token } = req.cookies ;
     if(token){
-        res.render('logout');
+       next();
+    }else{
+       res.render('login');
     }
-    else{
-        res.render('login');
-    }
-    
+}
+
+app.get('/',isAuthenticated,(req,res)=>{
+    res.render('logout');
 })
+
+// app.get("/",(req,res)=>{
+//     // console.log(req.cookies);
+
+//     const { token } = req.cookies;
+//     console.log(token);
+//     if(token){
+//         res.render('logout');
+//     }
+//     else{
+//         res.render('login');
+//     }
+    
+// })
 
 app.post("/login",(req,res)=>{
     res.cookie("token","iamin",{
