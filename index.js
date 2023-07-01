@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -19,7 +20,8 @@ const User = mongoose.model("User",userSchema);
 
 app.set("view engine","ejs");
 app.use(cookieParser());
-app.use(express.static(path.join(path.resolve(),"/public")))
+app.use(express.urlencoded({extended:true}));
+app.use(express.static(path.join(path.resolve(),"/public")));
 
 const isAuthenticated = (req,res,next) =>{
     const { token } = req.cookies ;
@@ -48,8 +50,16 @@ app.get('/',isAuthenticated,(req,res)=>{
     
 // })
 
-app.post("/login",(req,res)=>{
-    res.cookie("token","iamin",{
+app.post("/login",async (req,res)=>{
+    //console.log(req.body);
+
+    const {name,email} = req.body;
+   // ._id ko cookie mein store karenge
+
+   const user =  await User.create({name,email});
+   //directly aise user._id ko publicly dal nhi sakte , yani visibke nhi kara sakte 
+   //uski wajah se ham json web token use karte hai 
+    res.cookie("token",user._id,{
         httpOnly:true,
         expires: new Date(Date.now()+60*1000)
     });
