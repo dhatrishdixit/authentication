@@ -22,10 +22,13 @@ app.set("view engine","ejs");
 app.use(cookieParser());
 app.use(express.urlencoded({extended:true}));
 app.use(express.static(path.join(path.resolve(),"/public")));
-
-const isAuthenticated = (req,res,next) =>{
+//jab bhi data base mein kam karoge tab async await ka yaad rakhana
+const isAuthenticated = async (req,res,next) =>{
     const { token } = req.cookies ;
     if(token){
+        const decoded = jwt.verify(token,"asdfsagasfsadf");
+        //  console.log(decoded); 
+        req.user = await User.findById(decoded._id);
        next();
     }else{
        res.render('login');
@@ -33,7 +36,10 @@ const isAuthenticated = (req,res,next) =>{
 }
 
 app.get('/',isAuthenticated,(req,res)=>{
-    res.render('logout');
+    // jahan jahan isAuthenticated use hoga hamlog req.user ka use kar sakte haui , a
+    // aur baki jinme mein ham woh middle ware use nhi karenge usme req.user undefined hoga , kyunki ehle se uski koi value nhi hai woh undefined 
+    // console.log(req.user);
+    res.render('logout',{name:req.user.name});
 })
 
 // app.get("/",(req,res)=>{
@@ -50,16 +56,27 @@ app.get('/',isAuthenticated,(req,res)=>{
     
 // })
 
+app.get("/register",(req,res)=>{
+    res.render("register");
+})
+
 app.post("/login",async (req,res)=>{
     //console.log(req.body);
 
-    const {name,email} = req.body;
+    const {name,email,password} = req.body;
    // ._id ko cookie mein store karenge
-
-   const user =  await User.create({name,email});
+    let user = await User.findOne({email});
+    if(!user){
+      return  res.redirect("/register");
+    }
+    user =  await User.create({name,email});
    //directly aise user._id ko publicly dal nhi sakte , yani visibke nhi kara sakte 
    //uski wajah se ham json web token use karte hai 
-    res.cookie("token",user._id,{
+    const token = jwt.sign({_id:user._id},"asdfsagasfsadf"); 
+    // console.log(token);    
+   
+  // user id ko cookie mein directly ni dal sakte kyunki woh publicly available hoga
+    res.cookie("token",token,{
         httpOnly:true,
         expires: new Date(Date.now()+60*1000)
     });
@@ -67,6 +84,7 @@ app.post("/login",async (req,res)=>{
 })
 
 app.get("/logout",(req,res)=>{
+   
     res.cookie("token",null,{
       httpOnly:true,
       expires:new Date(Date.now()),  
