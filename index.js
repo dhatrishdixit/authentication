@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
-import { Session } from "inspector";
+import bcrypt from "bcrypt";
 
 const app = express();
-// jab bhi data base ka use karoge async await ka sochna mat bhulna 
+// jab bhi data base ka use karoge async await ka sochna mat bhulna , sath mein bcrypt ke time bhi 
 
 mongoose.connect("mongodb://127.0.0.1:27017",{
     dbName:"user"
@@ -78,7 +78,9 @@ app.post("/register",async (req,res)=>{
     if(user){
       return  res.redirect("/login");
     }
-    user =  await User.create({name,email,password});
+
+    const hashedPassword = await bcrypt.hash(password,10);
+    user =  await User.create({name,email,password:hashedPassword});
    //directly aise user._id ko publicly dal nhi sakte , yani visibke nhi kara sakte 
    //uski wajah se ham json web token use karte hai 
     const token = jwt.sign({_id:user._id},"asdfsagasfsadf"); 
@@ -95,10 +97,12 @@ app.post("/register",async (req,res)=>{
 
 app.post("/login",async(req,res)=>{
        const{ email,password} = req.body;
-       const user =await User.findOne({email});
+       const user = await User.findOne({email});
        //if wrong email or if email doesnt exist 
        if(!user) return res.redirect("/register")
-       const isSame = user.password === password;
+       //cause now we have change password to hashed password 
+    //    const isSame = user.password === password;
+       const isSame = await bcrypt.compare(password,user.password);
        // if wrong password 
        if(!isSame) return res.render("login",{email,message:"* Incorrect Password !!!"});
 
