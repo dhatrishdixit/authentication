@@ -3,9 +3,10 @@ import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
+import { Session } from "inspector";
 
 const app = express();
-
+// jab bhi data base ka use karoge async await ka sochna mat bhulna 
 
 mongoose.connect("mongodb://127.0.0.1:27017",{
     dbName:"user"
@@ -32,7 +33,9 @@ const isAuthenticated = async (req,res,next) =>{
         req.user = await User.findById(decoded._id);
        next();
     }else{
-       res.render('login');
+        //res.render("login");
+        // isko change isliye kiye ki already "/login" mein login page render ho raha hai sath mein ek hi route shi hai login ke liye , uska content do routes pe shi nhi rhega 
+       res.redirect('/login');
     }
 }
 
@@ -61,16 +64,21 @@ app.get("/register",(req,res)=>{
     res.render("register");
 })
 
-app.post("/login",async (req,res)=>{
+app.get("/login",(req,res)=>{
+    
+
+    res.render("login");
+})
+app.post("/register",async (req,res)=>{
     //console.log(req.body);
 
     const {name,email,password} = req.body;
    // ._id ko cookie mein store karenge
     let user = await User.findOne({email});
-    if(!user){
-      return  res.redirect("/register");
+    if(user){
+      return  res.redirect("/login");
     }
-    user =  await User.create({name,email});
+    user =  await User.create({name,email,password});
    //directly aise user._id ko publicly dal nhi sakte , yani visibke nhi kara sakte 
    //uski wajah se ham json web token use karte hai 
     const token = jwt.sign({_id:user._id},"asdfsagasfsadf"); 
@@ -79,9 +87,28 @@ app.post("/login",async (req,res)=>{
   // user id ko cookie mein directly ni dal sakte kyunki woh publicly available hoga
     res.cookie("token",token,{
         httpOnly:true,
-        expires: new Date(Date.now()+60*1000)
+        // expires: new Date(Date.now()+60*1000) 
+        expires: 0
     });
     res.redirect("/");
+})
+
+app.post("/login",async(req,res)=>{
+       const{ email,password} = req.body;
+       const user =await User.findOne({email});
+       //if wrong email or if email doesnt exist 
+       if(!user) return res.redirect("/register")
+       const isSame = user.password === password;
+       // if wrong password 
+       if(!isSame) return res.render("login",{email,message:"* Incorrect Password !!!"});
+
+       const token = jwt.sign({_id:user._id},"asdfsagasfsadf"); 
+       res.cookie("token",token,{
+           httpOnly:true,
+           expires:0
+       });
+       res.redirect("/");
+
 })
 
 app.get("/logout",(req,res)=>{
@@ -92,6 +119,7 @@ app.get("/logout",(req,res)=>{
     })
     res.redirect('/');
 })
+
 
 app.listen("5000",()=>{
     console.log('server is working');

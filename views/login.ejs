@@ -9,9 +9,12 @@
 <body>
 
     <form action="/login" method="post">
-        <input type = "text" name ="name" style="margin-bottom:10px ;height:5vh;width:30vh" placeholder="name"/>
-               <input type = "email" name = "email" style="margin-bottom:10px;height:5vh;width:30vh" placeholder="email"/>
-        
+        <!-- <h1>Login</h1> -->
+        <!-- <input type = "text" name ="name" style="margin-bottom:10px ;height:5vh;width:30vh" placeholder="name"/> -->
+        <input type = "email" name = "email" style="margin-bottom:10px;height:5vh;width:30vh" placeholder="email" value="<%= locals.email %>"/>
+         <input type = "password" name = "password" style="margin-bottom:10px;height:5vh;width:30vh" placeholder="password"/> 
+         <!-- locals pobject ki tarah use karna in case agar dynamic variable exist na kare toh us case ke liye  -->
+        <p class="error"><%= locals.message %></p>
         <button class ="button-36" role="button" style="display: flex;justify-content: center;align-items: center;">
         Login
     </button></form>
